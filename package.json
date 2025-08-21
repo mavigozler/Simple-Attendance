@@ -1,0 +1,23 @@
+{
+  "name": "simple-attendance",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.15.0",
+  "dependencies": {
+    "@types/columnify": "^1.5.4",
+    "@types/csv-parse": "^1.2.5",
+    "@types/node": "^24.3.0",
+    "columnify": "^1.6.0",
+    "csv": "^6.4.1",
+    "csv-parse": "^6.1.0",
+    "fs": "0.0.1-security"
+  }
+}

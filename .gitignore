@@ -1,0 +1,7 @@
+**/node_modules
+**/.vscode
+**/build/Gulp/src
+**/build/Gulp/pre
+**/build/Gulp/run
+**/GenLib
+**/*.js.map
