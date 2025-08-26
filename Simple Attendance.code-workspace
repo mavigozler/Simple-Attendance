@@ -2,9 +2,12 @@
    "folders": [
       {
          "path": "."
+      },
+      {
+         "path": ".."
       }
    ],
    "settings": {
-      "liveServer.settings.multiRootWorkspaceName": "mavigozler.github.io"
+      "liveServer.settings.multiRootWorkspaceName": "Simple Attendance"
    }
 }

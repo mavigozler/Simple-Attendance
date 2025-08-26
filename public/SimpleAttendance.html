@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Attendance</title>
+    <link rel="stylesheet" href="../css/std.css">
+    <link rel="stylesheet" href="../css/simpleAttendance.css">
+    <script type="module" src="../js/simpleattendanceBrowser.js"></script>
+</head>
+<body>
+<p id="title" class="tooltip">
+   Simple Attendance
+   <span class="tooltiptext">Developed by 
+    <span style="font:bold 120% Tahoma;color:yellow;">Mitch Halloran</span> 
+    <br>for use at and inspired by Fresno City College
+   </span>
+</p>
+<div class="container">
+<form target="_blank">
+    <label>
+      Select the appropriately formatted CSV file that contains your roster
+      <a href="SimpleAttendanceHelp.html" target="_blank">
+      <img src="../images/help-icon-15x15.jpg" alt="help for this"
+         style="width:12px;vertical-align: middle;"></a>
+    <input id="roster-file" type="file">
+    </label>
+
+    <label>
+      Select the appropriately formatted CSV file that are the responses for your Google Form 
+    <input id="attendance-file" type="file">
+    </label>
+
+    <button type="button" id="submit-button">Process</button>
+    <button type="reset">Reset</button>
+    <div id="warnings"></div>
+</form>
+
+<div id="onpage-roll"></div>
+
+<div id="download-files-buttons"></div>
+
+</div>
+</body>
+</html>

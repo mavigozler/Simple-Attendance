@@ -1,0 +1,21 @@
+label {
+   display: block;
+   font: normal 10pt Arial,sans-serif;
+   margin:1em 0;
+}
+label input {
+   display:block;
+   font: bold 8pt Tahoma,sans-serif;
+}
+#warnings {
+   display: none;
+   border: 1px solid red;
+   padding: 0.2em 0.5em;
+   background-color: #fff0f0;
+   font: normal 9pt Arial,sans-serif;
+}
+img.not-contained {
+   display:block;
+   margin:1em auto;
+   max-width: 100%;
+}

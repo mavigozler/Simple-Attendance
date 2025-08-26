@@ -158,39 +158,10 @@ Session Type: Thursday Lab
 ----
 ABSENT
 STUDENTID NAME                      EMAIL                           SECTION SESSIONTYPE  SESSIONDATE
-0345856   Marquez, Rocelia          RMarquez33@MY.SCCCD.EDU         43957   Thursday Lab 8/14/2025  
-0490011   Garcia, Sabrina           SRGarcia4@MY.SCCCD.EDU          43957   Thursday Lab 8/14/2025  
-0517817   Torrence, Mykhail         MTorrence1@MY.SCCCD.EDU         43957   Thursday Lab 8/14/2025  
-0523330   Pyle, Matthew             MPyle1@MY.SCCCD.EDU             43957   Thursday Lab 8/14/2025  
-0694264   Andrade, Antonio          AAndrade26@MY.SCCCD.EDU         43957   Thursday Lab 8/14/2025  
-0737921   Fang, Pa                  PHFang1@MY.SCCCD.EDU            43957   Thursday Lab 8/14/2025  
-0775232   Vargas, Lisa              LRVargas1@MY.SCCCD.EDU          43957   Thursday Lab 8/14/2025  
-0871988   Hernan, Jazmine           JHHernan1@MY.SCCCD.EDU          43957   Thursday Lab 8/14/2025  
-0873290   Aquino, Hailey            HJAquino1@MY.SCCCD.EDU          43957   Thursday Lab 8/14/2025  
-0888543   Esparza, Beatrice         BMEsparza1@MY.SCCCD.EDU         43957   Thursday Lab 8/14/2025  
-0891883   Sarkisyan, Rita           RASarkisyan1@MY.SCCCD.EDU       43957   Thursday Lab 8/14/2025  
-0895473   Pedroza, Serena           SRPedroza2@MY.SCCCD.EDU         43957   Thursday Lab 8/14/2025  
-0896290   Tacadena, Elle            EMTacadena1@MY.SCCCD.EDU        43957   Thursday Lab 8/14/2025  
-0924739   Santos, Madison           MRSantos3@MY.SCCCD.EDU          43957   Thursday Lab 8/14/2025  
-0934216   Wright, Rebecca           RLWright3@MY.SCCCD.EDU          43957   Thursday Lab 8/14/2025  
-0964444   Ross, Derick              DSRoss2@MY.SCCCD.EDU            43957   Thursday Lab 8/14/2025  
-0985631   Garcia, Maliyah           MAGarcia111@MY.SCCCD.EDU        43957   Thursday Lab 8/14/2025  
-0986455   Moua, Haley               HNMoua3@MY.SCCCD.EDU            43957   Thursday Lab 8/14/2025  
-0994114   Corea, Kristie            KNCorea1@MY.SCCCD.EDU           43957   Thursday Lab 8/14/2025  
-1012960   Nounvilaythong, Samaria   SVNounvilaythong1@MY.SCCCD.EDU  43957   Thursday Lab 8/14/2025  
-1022282   Sandoval, Emily           EESandoval2@MY.SCCCD.EDU        43957   Thursday Lab 8/14/2025  
-1024952   Cuevas Romero, Ana        ADCuevasRomero1@MY.SCCCD.EDU    43957   Thursday Lab 8/14/2025  
-1028207   Lopez, Jovina             JALopez110@MY.SCCCD.EDU         43957   Thursday Lab 8/14/2025  
-1035199   Pascale, Teah             TMPascale1@MY.SCCCD.EDU         43957   Thursday Lab 8/14/2025  
-1039827   Olea, Joscelyne           JDOlea1@MY.SCCCD.EDU            43957   Thursday Lab 8/14/2025  
-1039936   Gamez, Sergio             SRGamez1@MY.SCCCD.EDU           43957   Thursday Lab 8/14/2025  
-1047765   Munoz Cisneros, Evelyn    EMunozCisneros1@MY.SCCCD.EDU    43957   Thursday Lab 8/14/2025  
-1068669   Snell, Tricia             TDSnell1@MY.SCCCD.EDU           43957   Thursday Lab 8/14/2025  
 0977589   Negrete, Miguel           MNegrete25@MY.SCCCD.EDU         43958   Thursday Lab 8/14/2025  
 1063699   Garcia-Hernandez, Allison AGGarciaHernandez2@MY.SCCCD.EDU 43958   Thursday Lab 8/14/2025  
 PRESENT
 TIMESTAMP                 STUDENTID NAME                        SECTION SESSIONTYPE  WAITLISTPOSITION
-2025/08/14 7:38:54 PM MDT 0790131   Garcia, Andres              43957   Thursday Lab                 
 2025/08/14 7:39:04 PM MDT 0547169   San Roman, Jesus            43958   Thursday Lab                 
 2025/08/14 7:38:19 PM MDT 0574404   Rodriguez, Madison          43958   Thursday Lab                 
 2025/08/14 7:38:57 PM MDT 0684403   Morgan, Steven              43958   Thursday Lab                 
