@@ -1,0 +1,10 @@
+WHOLE REPORT
+
+- Node: read all *.csv files
+
+Sections -
+sort by ID
+  
+sort by Name 
+
+- Time analysis. Check timestamps for those out a range 

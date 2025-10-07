@@ -15,15 +15,18 @@
   "license": "ISC",
   "packageManager": "pnpm@10.15.0",
   "dependencies": {
-    "csv-parse": "^5.5.0"
+    "@types/js-yaml": "^4.0.9",
+    "csv-generate": "^4.5.0",
+    "csv-parse": "^5.5.0",
+    "js-yaml": "^4.1.0"
   },
   "devDependencies": {
     "@types/columnify": "^1.5.4",
     "@types/csv-parse": "^1.2.5",
     "@types/node": "^24.3.0",
+    "browserify": "^17.0.0",
     "columnify": "^1.6.0",
     "csv": "^6.4.1",
-    "fs": "0.0.1-security",
-    "browserify": "^17.0.0"
+    "fs": "0.0.1-security"
   }
 }

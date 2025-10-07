@@ -1,6 +1,17 @@
+export { coreProcessing, setPacificTime };
 import { parse } from "../node_modules/csv-parse/dist/esm/sync.js";
-export function coreProcessing(rosterContent, attendanceContent) {
-    let report = "";
+import { stringify } from "../node_modules/csv-stringify/dist/esm/sync.js";
+function coreProcessing(rosterContent, attendanceFilesContents // keep the contents of all files separate as strings
+) {
+    // clean up the attendance records content
+    let report = "", sessionRecords = [];
+    // do header checks first
+    for (const attendanceContent of attendanceFilesContents)
+        // Timestamp, Student ID, Attendance Code, optional Name
+        sessionRecords = sessionRecords.concat(parse(attendanceContent, {
+            columns: true,
+            skip_empty_lines: true
+        }));
     const rosterRecords = parse(rosterContent, {
         columns: (header) => {
             report += `${header},`;
@@ -14,11 +25,6 @@ export function coreProcessing(rosterContent, attendanceContent) {
                 return parseInt(value);
             return value;
         }
-    });
-    // Timestamp, Student ID, Attendance Code
-    const sessionRecords = parse(attendanceContent, {
-        columns: true,
-        skip_empty_lines: true
     });
     const sectionRosters = [];
     let prevRecord = "";
@@ -53,7 +59,7 @@ export function coreProcessing(rosterContent, attendanceContent) {
              if enrolled, waitlisted, and dropped is found, add to "Present"
     */
     const sessionsData = [], sessionBlocks = [];
-    let sessionCode = "", sessionRecord, sessionBlock = [], present = [], absent = [], unmatched = [], sessionType, sessionDate;
+    let sessionCode = "", sessionRecord, sessionBlock = [], present = [], absent = [], unmatched = [], sessionType, sessionDate, csvRecords = [];
     sessionRecords.sort((a, b) => {
         const aValue = a["Attendance Code"], bValue = b["Attendance Code"];
         return aValue > bValue ? aValue < bValue ? -1 : 0 : 1;
@@ -86,37 +92,78 @@ export function coreProcessing(rosterContent, attendanceContent) {
         // search session records for enrolled students first
         for (const rosterRecord of sessionRoster)
             if (sessionRecord = sessionBlock.find(blockRec => blockRec["Student ID"] == rosterRecord.StudentId)) {
-                if (rosterRecord.Status == "Enrolled" || rosterRecord.Status == "Waitlisted")
+                if (rosterRecord.Status == "Enrolled" || rosterRecord.Status == "Waitlisted") {
                     present.push({
                         Timestamp: sessionRecord.Timestamp,
                         StudentID: rosterRecord.StudentId.toString(),
                         Name: rosterRecord.Name,
+                        RecordedName: sessionRecord.Name,
                         Section: rosterRecord.Section,
                         SessionType: sessionType,
                         WaitlistPosition: isNaN(rosterRecord["Wait Position"]) ? undefined : rosterRecord["Wait Position"]
                     });
+                    csvRecords.push({
+                        StudentID: rosterRecord.StudentId.toString(),
+                        Name: rosterRecord.Name,
+                        Email: rosterRecord.Email,
+                        Section: rosterRecord.Section,
+                        Status: rosterRecord.Status,
+                        SessionDate: sessionDate,
+                        SessionType: sessionType,
+                        Absent: "no",
+                        Timestamp: sessionRecord.Timestamp,
+                        WaitlistPosition: null
+                    });
+                }
             }
-            else if (rosterRecord.Status == "Enrolled")
+            else if (rosterRecord.Status == "Enrolled") {
                 absent.push({
                     StudentID: rosterRecord.StudentId.toString(),
                     Name: rosterRecord.Name,
                     Email: rosterRecord.Email,
                     Section: rosterRecord.Section,
+                    Status: rosterRecord.Status,
                     SessionType: sessionType,
                     SessionDate: sessionDate
                 });
+                csvRecords.push({
+                    StudentID: rosterRecord.StudentId.toString(),
+                    Name: rosterRecord.Name,
+                    Email: rosterRecord.Email,
+                    Section: rosterRecord.Section,
+                    Status: rosterRecord.Status,
+                    SessionDate: sessionDate,
+                    SessionType: sessionType,
+                    Absent: "yes",
+                    Timestamp: null,
+                    WaitlistPosition: null
+                });
+            }
         // search 
         for (const sessionRecord of sessionBlock)
             if (rosterRecords.find(rosRec => rosRec.StudentId == sessionRecord["Student ID"] //&&
             // rosRec.Status == "Enrolled"
             ))
                 continue;
-            else
+            else {
                 unmatched.push({
                     StudentID: sessionRecord["Student ID"].toString(),
                     SessionType: sessionType,
                     Timestamp: sessionRecord.Timestamp
                 });
+                csvRecords.push({
+                    StudentID: sessionRecord["Student ID"],
+                    Name: "unknown",
+                    Email: "",
+                    Section: "",
+                    Status: "",
+                    SessionDate: sessionDate,
+                    SessionType: sessionType,
+                    Absent: "no",
+                    Timestamp: sessionRecord.Timestamp,
+                    WaitlistPosition: null
+                });
+            }
         sessionsData.push({
             Headers: {
                 present: Object.keys(present[0]),
@@ -133,6 +180,21 @@ export function coreProcessing(rosterContent, attendanceContent) {
         absent = [];
         unmatched = [];
     }
-    return { sessionData: sessionsData, rosterRecords: rosterRecords };
+    const stringified = stringify(csvRecords, {
+        header: true
+    });
+    return { sessionsData: sessionsData, rosterRecords: rosterRecords, csvData: stringified };
+}
+function setPacificTime(timestamp) {
+    return new Intl.DateTimeFormat("en-us", {
+        timeZone: "America/Los_Angeles",
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        second: "numeric",
+        timeZoneName: "short"
+    }).format(new Date(timestamp));
 }
 //# sourceMappingURL=simpleattendanceCore.js.map

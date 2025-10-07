@@ -281,7 +281,7 @@ function makeTable(params) {
                     if (typeof value.iValue == "string") {
                         //						if (value.iValue.length > myICss.MAX_STRING_CHECK_FOR_COLUMN)
                         //							myICss.adjustWordStyleForTableColumn(value.iValue, tdNode, testWidthElement);
-                        if (value.iValue.search(/\$\$/) >= 0)
+                        if (value.iValue.search(/\$\$/) >= 0 || value.wrapLink)
                             setCellValue(item, value.iValue, value.wrapLink);
                         else
                             tdNode.appendChild(document.createTextNode(value.iValue));
@@ -321,7 +321,7 @@ function makeTable(params) {
      * @param value
      * @param wrapLink
      */
-    function setCellValue(item, value, wrapLink) {
+    function setCellValue(item, value, wrapLink, type) {
         //  for "$$<object properties>"
         const varsVals = [];
         let //index,

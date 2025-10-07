@@ -4,10 +4,11 @@
          "path": "."
       },
       {
-         "path": ".."
+         "path": "../../../Documents/PowerShell"
       }
    ],
    "settings": {
-      "liveServer.settings.multiRootWorkspaceName": "Simple Attendance"
+      "liveServer.settings.multiRootWorkspaceName": "Simple Attendance",
+      "powershell.cwd": "Simple Attendance"
    }
 }

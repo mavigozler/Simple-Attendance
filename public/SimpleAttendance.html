@@ -24,13 +24,16 @@
       <a href="SimpleAttendanceHelp.html" target="_blank">
       <img src="../images/help-icon-15x15.jpg" alt="help for this"
          style="width:12px;vertical-align: middle;"></a>
-    <input id="roster-file" type="file">
+    <input id="roster-file" type="file" accept=".csv">
     </label>
 
-    <label>
-      Select the appropriately formatted CSV file that are the responses for your Google Form 
-    <input id="attendance-file" type="file">
+    <div id="dropzone">
+    <label style="margin:0;">Drop files or a folder here or use the <b>Choose Files</b> button<br><br>
+    Files should be of format <span id="attendance-file-format"></span>
+    <input id="attendance-files-folder" type="file" multiple accept=".csv">
+    <span id="select-list"></span>
     </label>
+    </div>
 
     <button type="button" id="submit-button">Process</button>
     <button type="reset">Reset</button>

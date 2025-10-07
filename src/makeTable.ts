@@ -303,9 +303,9 @@ function makeTable(params: TMakeTableParams): HTMLTableElement  {
 					if (typeof value.iValue == "string") {
 //						if (value.iValue.length > myICss.MAX_STRING_CHECK_FOR_COLUMN)
 //							myICss.adjustWordStyleForTableColumn(value.iValue, tdNode, testWidthElement);
-						if (value.iValue.search(/\$\$/) >= 0)
+						if (value.iValue.search(/\$\$/) >= 0 || value.wrapLink)
 							setCellValue(item, value.iValue, value.wrapLink);
-						else
+						else 
 							tdNode.appendChild(document.createTextNode(value.iValue));
 					} // if value has 'attrib' property
 					if (value.attrib && value.attrib.length && value.attrib.length > 0) {
@@ -349,7 +349,8 @@ function makeTable(params: TMakeTableParams): HTMLTableElement  {
 	function setCellValue(
 		item: TTableDefinitionItem,
 		value: any,
-		wrapLink: string | null
+		wrapLink: string | null,
+		type?: "url" | "email"
 	) {
 		//  for "$$<object properties>"
 		const varsVals: string[] = [];
@@ -376,6 +377,7 @@ function makeTable(params: TMakeTableParams): HTMLTableElement  {
 
 		if (wrapLink && wrapLink.length > 0) {
 			const anchor = document.createElement("a") as HTMLAnchorElement;
+			
 			anchor.href = wrapLink;
 			anchor.target = "_blank";
 			anchor.appendChild(document.createTextNode(value));

@@ -19,3 +19,18 @@ img.not-contained {
    margin:1em auto;
    max-width: 100%;
 }
+span#attendance-file-format-string {
+   font-weight: bold;
+   font-style: italic;
+   color: maroon;
+}
+span#select-list {
+   font: normal 10pt 'Courier New',Courier,monotype;
+}
+div#dropzone {
+   padding:10px;
+   border: 2pt dashed black;
+   background-color: rgb(238, 231, 231);
+   width: fit-content;
+   margin:5px 0 5px 0;
+}

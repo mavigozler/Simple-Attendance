@@ -1,29 +1,31 @@
 import type { SessionData, RosterRecord, Section, 
 	AbsenceInfo, AttendanceRecord, UnmatchedRecord} from "./types/simpleattendanceTypes";
 
-import { generate } from "../node_modules/csv-generate/dist/esm/sync.js";
-import { coreProcessing } from "./simpleattendanceCore.js";
+// import { generate } from "../node_modules/csv-generate/dist/esm/sync.js";
+import { coreProcessing, setPacificTime } from "./simpleattendanceCore.js";
 import { makeTable } from "./makeTable.js";
 
 //import { RosterData, AttendanceData } from "./testFileContent.js";
 const titleCaptionAttribs: ElementCssProperties = {
-	fontFamily: "Tahoma,sans-serif",
-	fontWeight: "bold",
-	color: "blue",
-	fontSize: 11,
+		fontFamily: "Tahoma,sans-serif",
+		fontWeight: "bold",
+		color: "blue",
+		fontSize: 13,
 },
 subtitleCaptionAttribs: ElementCssProperties = {
 	fontFamily: "Courier,Courier New",
-	fontSize: 13
-}
+	fontSize: 16
+};
+
 let rollTableDiv: HTMLDivElement,
 	downloadFilesButtonsDiv: HTMLDivElement,
 	rosterContent: string,
-	attendanceContent: string,
-//	rosterFile: File | undefined,
-//	attendanceFile: File | undefined,
 	warningsDiv = document.getElementById("warnings") as HTMLDivElement;
 
+/**
+ * @function Warning
+ * @param message 
+ */
 function Warning(message: string) {
 	const spanElem = document.createElement("span");
 	spanElem.appendChild(document.createTextNode(message));
@@ -32,56 +34,145 @@ function Warning(message: string) {
 	warningsDiv.style.display = "block";
 }
 
+/**
+ * 
+ */
 document.addEventListener("DOMContentLoaded", () => {
-   document.getElementById("roster-file")!.addEventListener("change", (evt: Event) => {
+	/* build HTML form */
+	const droppedFiles: File[] = [];
+   const rosterFileControl = document.getElementById("roster-file") as HTMLInputElement;
+	rosterFileControl.addEventListener("change", (evt: Event) => {
 		const rosterFile = (evt.currentTarget as HTMLInputElement).files?.[0] ?? undefined;
 		if (rosterFile)
-			getContentFromFile(rosterFile)
-			.then(content => rosterContent = content)
+			getContentsFromFiles([rosterFile])
+			.then(content => rosterContent = content[0])  // get the one file
 			.catch(err => {
 				Warning(`Roster file upload error: Err=${err}`);
 			});
 	});
-   document.getElementById("attendance-file")!.addEventListener("change", (evt: Event) => {
-		const attendanceFile = (evt.currentTarget as HTMLInputElement).files?.[0] ?? undefined;
-		if (attendanceFile)
-			getContentFromFile(attendanceFile)
-			.then(content => attendanceContent = content)
-			.catch(err => {
-				Warning(`Roster file upload error: Err=${err}`);
-			});
+/*************************************************************************
+ *   Attendance Records Input UI start
+ *************************************************************************/
+	let attendanceCsvFiles: File[];
+	const attendanceFileFormat = "AttendanceDDDDDDDD.csv";
+	const spanElem = document.createElement("span");
+	spanElem.id = "attendance-file-format-string";
+	spanElem.appendChild(document.createTextNode(attendanceFileFormat));
+	document.getElementById("attendance-file-format")?.appendChild(spanElem);
+	
+	const dropzone = document.getElementById('dropzone') as HTMLInputElement;
+	dropzone.addEventListener('dragover', e => { 
+		e.preventDefault(); // allow drop
+  	});
+	dropzone.addEventListener('drop', e => {
+		e.preventDefault();
+		if (e.dataTransfer) {
+			const items = e.dataTransfer.items;
+			for (let i = 0; i < items.length; i++) {
+				const entry = items[i].webkitGetAsEntry();
+				if (entry && entry.isDirectory) {
+					//(entry as FileSystemDirectoryEntry)
+					(entry as FileSystemDirectoryEntry).createReader().readEntries(entries => {
+						entries.forEach((droppedEntry: FileSystemEntry) => {
+							if (droppedEntry.isFile) {
+								const fileEntry = droppedEntry as FileSystemFileEntry;
+								fileEntry.file(
+									(theFile: File) => {
+										droppedFiles.push(theFile);
+									}, 
+									(err) => {
+										// error callback
+										Warning(`${entry.name} folder fetch had following issue: ${err}`);
+									}
+								);
+							} else
+								Warning("Entry is not a file");
+						});
+						attendanceCsvFiles = getCsvFilesOnly(droppedFiles);
+					}, 
+					(err) => {
+						// error callback
+						Warning(`${entry.name} folder fetch had following issue: ${err}`);
+					});
+				}
+			}
+		}
+  	});
+   document.getElementById("attendance-files-folder")!.addEventListener("change", (evt: Event) => {
+		let fileItem: File | null;
+		const attendanceFileList = (evt.currentTarget as HTMLInputElement).files ?? undefined;
+		// filter to files of *.csv type
+		if (attendanceFileList)
+			for (let i = 0; fileItem = attendanceFileList.item(i++); fileItem != null)
+				droppedFiles.push(fileItem);
+			attendanceCsvFiles = getCsvFilesOnly(droppedFiles);
 	});
    const processButton: HTMLButtonElement = document.getElementById("submit-button")! as HTMLButtonElement;
-	processButton.addEventListener("click", () => {
-		if (!rosterContent && !attendanceContent)
+	processButton.addEventListener("click", async () => {
+		if (!rosterContent && attendanceCsvFiles)
 			return Error("Nothing to process: Either the roster data or attendance data or both are missing");
-		const {sessionData, rosterRecords } = coreProcessing(rosterContent, attendanceContent);
-		reportToHTMLPage(sessionData, rosterRecords );
-		prepareCSVFiles(sessionData, downloadFilesButtonsDiv);
+		const trimmedList = attendanceCsvFiles.filter(item => {
+			return item.name.search(/Attendance\D{8}\.csv/i) >= 0;
+		});
+		const attendanceFilesContents = await getContentsFromFiles(trimmedList);
+		const {sessionsData, rosterRecords } = coreProcessing(rosterContent, attendanceFilesContents);
+		reportToHTMLPage(sessionsData, rosterRecords );
+		prepareCSVFiles(sessionsData, downloadFilesButtonsDiv);
 	});
 	rollTableDiv = document.getElementById("onpage-roll") as HTMLDivElement;
 	downloadFilesButtonsDiv = document.getElementById("download-files-buttons") as HTMLDivElement;
 	//processButton.click();
 });
 
+function getCsvFilesOnly(fileList: File[]): File[] {
+	const trimList: File[] = [];
+	const selectList = document.getElementById("select-list") as HTMLDivElement;
+	for (const file of fileList)
+		if (file.name.search(/^Attendance\d{8}\.csv$/i) >= 0) {
+			trimList.push(file);
+			selectList.appendChild(document.createTextNode(file.name));
+			selectList.appendChild(document.createElement("br"));
+		}
+	return trimList;
+}
+
 function getEmail(studentId: string, rosterRecords: RosterRecord[]) {
 	return rosterRecords.find(rec => rec.StudentId == studentId)?.Email;
 }
 
-function getContentFromFile(inputFile: File): Promise<string> {
-	return new Promise<string>((resolve, reject) => {
-		try {
-			const reader = new FileReader();
-			reader.onload = (uploadEvent) => {
-				resolve(uploadEvent.target!.result as string);
-			};
-			reader.readAsText(inputFile);
-		} catch (e) {
-			reject(e);
-		}
+/**
+ * @function getContentsFromFiles
+ * @param inputFiles
+ * @returns 
+ */
+function getContentsFromFiles(inputFiles: File[]): Promise<string[]> {
+	return new Promise<string[]>((resolve, reject) => {
+		const fileRequests: Promise<string>[] = [];
+		for (const inputFile of inputFiles)
+			fileRequests.push(new Promise<string>((resolve, reject) => {
+				try {
+					const reader = new FileReader();
+					reader.onload = (uploadEvent) => {
+						resolve(uploadEvent.target!.result as string);
+					};
+					reader.readAsText(inputFile);
+				} catch (e) {
+					reject(e);
+				}
+			}));
+		Promise.all(fileRequests).then((inputFilesContents: string[]) => {
+			resolve(inputFilesContents);
+		}).catch(err => {
+			reject(err);
+		});
 	});
 }
 
+/**
+ * @function reportToHTMLPage
+ * @param sessionsData 
+ * @param rosterRecords 
+ */
 function reportToHTMLPage(sessionsData: SessionData[], rosterRecords: RosterRecord[]) {
 	let params: TMakeTableParams;
 
@@ -106,17 +197,19 @@ function reportToHTMLPage(sessionsData: SessionData[], rosterRecords: RosterReco
 					text: "Absent",
 					attribs: subtitleCaptionAttribs
 				},
-				headers: [ "Student ID", "Name", "Section", "Email"  ],
+				headers: [ "Student ID", "Name", "Section", "Status", "Email"  ],
 				data: sessionData.Absent,
 				attach: rollTableDiv,
 				display: [
 					(item: AbsenceInfo ) => {return item.StudentID},
 					(item: AbsenceInfo ) => {return item.Name},
 					(item: AbsenceInfo ) => {return item.Section},
+					(item: AbsenceInfo ) => {return item.Status},
 					(item: AbsenceInfo ) => {return {
-						attrib: "text-align:center;font:normal 10pt 'Courier New',Courier,monotype;",
-						iValue: item.Email
-					}},
+							attrib: "text-align:center;font:normal 10pt 'Courier New',Courier,monotype;",
+							iValue: item.Email,
+							wrapLink: `mailto:${item.Email}`
+						}},
 				//	(item: AbsenceInfo ) => {return item.SessionType},
 				//	(item: AbsenceInfo ) => {return item.SessionDate}
 				],
@@ -146,7 +239,7 @@ function reportToHTMLPage(sessionsData: SessionData[], rosterRecords: RosterReco
 				display: [
 					(item: UnmatchedRecord ) => {return item.StudentID},
 					(item: UnmatchedRecord ) => {return item.SessionType},
-					(item: UnmatchedRecord ) => {return item.Timestamp.toLocaleString()}
+					(item: UnmatchedRecord ) => {return setPacificTime(item.Timestamp)}
 				],
 				options: {
 					
@@ -176,7 +269,7 @@ function reportToHTMLPage(sessionsData: SessionData[], rosterRecords: RosterReco
 				(item: AttendanceRecord) => { return item.Name },
 				(item: AttendanceRecord) => { return item.Section },
 //				(item: AttendanceRecord) => { return item.SessionType },
-				(item: AttendanceRecord) => { return item.Timestamp.toLocaleString() },
+				(item: AttendanceRecord) => { return setPacificTime(item.Timestamp) },
 				(item: AttendanceRecord) => { return item.WaitlistPosition ? item.WaitlistPosition.toString() : "" },
 			],
 			options: {
@@ -242,12 +335,18 @@ function reportToHTMLPage(sessionsData: SessionData[], rosterRecords: RosterReco
 	}
 }
 
+/**
+ * @function prepareCSVFiles
+ * @param sessionsData 
+ * @param containerElement 
+ * @returns 
+ */
 function prepareCSVFiles(sessionsData: SessionData[], containerElement: HTMLElement): {absent: string; present: string; combined: string} {
 	for (const session of sessionsData) {
 	// generate the CSV records
 		let fileRecords: string[][] = [];
 			fileRecords.push(Object.keys(session.Absent));
-			session.Absent.forEach(rec => Object.values(rec))
+			session.Absent.forEach(rec => Object.values(rec));
 			fileRecords.push();
 	// Prepare the download buttons
 		const absentDownloadButton = document.createElement("button"),
@@ -269,6 +368,13 @@ function prepareCSVFiles(sessionsData: SessionData[], containerElement: HTMLElem
 	return {} as {absent: string; present: string; combined: string};
 }
 
+/**
+ * @function createFileDownload
+ * @param containerNode 
+ * @param href 
+ * @param downloadFileName 
+ * @param newTab
+ */
 function createFileDownload(
 	containerNode: HTMLElement,
 	href: string,
@@ -287,6 +393,7 @@ function createFileDownload(
 	containerNode.removeChild(aNode);
 }
 
+/*
 function setupMockFiles(files: string[]) {
 	// Create a mock File object
 	for (const file of files) {
@@ -312,7 +419,7 @@ function setupMockFiles(files: string[]) {
 	}
 }
 
-/*setupMockFiles([
+setupMockFiles([
 	"",
 	"14 Aug Attendance.csv"
 ]);*/
