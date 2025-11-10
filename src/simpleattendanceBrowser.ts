@@ -17,10 +17,12 @@ subtitleCaptionAttribs: ElementCssProperties = {
 	fontSize: 16
 };
 
+
 let rollTableDiv: HTMLDivElement,
 	downloadFilesButtonsDiv: HTMLDivElement,
 	rosterContent: string,
-	warningsDiv = document.getElementById("warnings") as HTMLDivElement;
+	warningsDiv = document.getElementById("warnings") as HTMLDivElement,
+	SelectList: HTMLDivElement;
 
 /**
  * @function Warning
@@ -39,6 +41,12 @@ function Warning(message: string) {
  */
 document.addEventListener("DOMContentLoaded", () => {
 	/* build HTML form */
+	SelectList = document.getElementById("select-list") as HTMLDivElement;
+	document.getElementById("form-reset")?.addEventListener("click", (evt: Event) => {
+		(evt.currentTarget as HTMLButtonElement).form!.reset();
+		while (SelectList.firstChild)
+			SelectList.removeChild(SelectList.firstChild);
+	});
 	const droppedFiles: File[] = [];
    const rosterFileControl = document.getElementById("roster-file") as HTMLInputElement;
 	rosterFileControl.addEventListener("change", (evt: Event) => {
@@ -59,7 +67,8 @@ document.addEventListener("DOMContentLoaded", () => {
 	spanElem.id = "attendance-file-format-string";
 	spanElem.appendChild(document.createTextNode(attendanceFileFormat));
 	document.getElementById("attendance-file-format")?.appendChild(spanElem);
-	
+
+	// DROPPED FILES code
 	const dropzone = document.getElementById('dropzone') as HTMLInputElement;
 	dropzone.addEventListener('dragover', e => { 
 		e.preventDefault(); // allow drop
@@ -73,22 +82,28 @@ document.addEventListener("DOMContentLoaded", () => {
 				if (entry && entry.isDirectory) {
 					//(entry as FileSystemDirectoryEntry)
 					(entry as FileSystemDirectoryEntry).createReader().readEntries(entries => {
-						entries.forEach((droppedEntry: FileSystemEntry) => {
-							if (droppedEntry.isFile) {
-								const fileEntry = droppedEntry as FileSystemFileEntry;
-								fileEntry.file(
-									(theFile: File) => {
-										droppedFiles.push(theFile);
-									}, 
-									(err) => {
-										// error callback
-										Warning(`${entry.name} folder fetch had following issue: ${err}`);
-									}
-								);
-							} else
-								Warning("Entry is not a file");
+						const dirEntriesRequest: Promise<File>[] = [];
+						for (const entry of entries)
+							dirEntriesRequest.push(new Promise((resolve, reject) => {
+								if (entry.isFile) {
+									const fileEntry = entry as FileSystemFileEntry;
+									fileEntry.file(
+										(theFile: File) => {
+											resolve(theFile);
+										}, 
+										(err) => {
+											// error callback
+											reject(Warning(`${entry.name} folder fetch had following issue: ${err}`));
+										}
+									);
+								}
+							}));
+						Promise.all(dirEntriesRequest).then((theFiles: File[]) => {
+							attendanceCsvFiles = getCsvFilesOnly(theFiles);
+							document.getElementById("attendance-files-folder-input")!.style.display = "none";
+						}).catch(err => {
+							Warning(`${entry.name} folder fetch had following issue: ${err}`);	
 						});
-						attendanceCsvFiles = getCsvFilesOnly(droppedFiles);
 					}, 
 					(err) => {
 						// error callback
@@ -98,45 +113,105 @@ document.addEventListener("DOMContentLoaded", () => {
 			}
 		}
   	});
-   document.getElementById("attendance-files-folder")!.addEventListener("change", (evt: Event) => {
+	// CHOOSE FILES input code
+   document.getElementById("attendance-files-folder-input")!.addEventListener("change", (evt: Event) => {
 		let fileItem: File | null;
 		const attendanceFileList = (evt.currentTarget as HTMLInputElement).files ?? undefined;
 		// filter to files of *.csv type
 		if (attendanceFileList)
 			for (let i = 0; fileItem = attendanceFileList.item(i++); fileItem != null)
 				droppedFiles.push(fileItem);
-			attendanceCsvFiles = getCsvFilesOnly(droppedFiles);
+			if (droppedFiles.length == 0) {
+				document.getElementById("attendance-files-prompt")!.style.display = "none";
+				document.getElementById("select-list-report")!.appendChild(
+					document.createTextNode(
+						"No files were found in the list of files selected. Reset and try again"
+					)
+				);
+			} else
+				attendanceCsvFiles = getCsvFilesOnly(droppedFiles);
 	});
+	document.getElementById("control-time")?.addEventListener("change", (evt: Event) => {
+		if ((evt.currentTarget as HTMLInputElement).checked == true)
+			timeControlDiv.style.display = "";
+	});
+	const timeControlDiv = document.getElementById("right-side") as HTMLDivElement,
+		daynameproducer = new Date('2023-01-01T00:00:00'); // starts on Sunday
+	timeControlDiv.appendChild(document.createTextNode(
+		"Use this optional feature to make sure students record attendance within a proper time window"
+	));
+	const weekdaysLabelElem = document.createElement("label");
+	weekdaysLabelElem.id = "weekdaysLabelElem";
+	timeControlDiv.appendChild(weekdaysLabelElem);
+	const beforeText = document.createElement("span");
+	weekdaysLabelElem.appendChild(beforeText);
+	beforeText.appendChild(
+		document.createTextNode("Select the days of the week for which attendance records are wanted")
+	);
+	beforeText.id = "beforeText";
+	for (let i = 0; i < 7; i++) {
+		const daySpanElem = document.createElement("span");
+		timeControlDiv.appendChild(daySpanElem);
+		daySpanElem.className = "daySpanElem";
+		// for 1st day of week = Monday daynameproducer.setDate(date.getDate() + 1)
+		const namedDay = document.createElement("span");
+		namedDay.appendChild( 
+			document.createTextNode(daynameproducer.toLocaleDateString("en-US", { weekday: "long"}))
+		);
+		daySpanElem.appendChild(namedDay);
+		daynameproducer.setDate(daynameproducer.getDate() + 1);
+		const textboxForHours = document.createElement("input");
+		daySpanElem.appendChild(textboxForHours);
+		textboxForHours.className = "textboxForHours";
+		weekdaysLabelElem.appendChild(daySpanElem);
+	}
+	const timePeriodsDivElem = document.createElement("div");
+	timeControlDiv.appendChild(timePeriodsDivElem);
+	timePeriodsDivElem.appendChild(document.createTextNode(
+		"Set one or more time periods within the attendance days in which code submissions " +
+		"will not be flagged. Codes sumbitted outside the time period(s) will be flagged " +
+		"for notice."
+	));
+	timePeriodsDivElem.appendChild(document.createElement("br"));
+	timePeriodsDivElem.appendChild(document.createTextNode(
+		"Text entry formats must be 'HH:MM [am|pm]' and start and stop times must be indicated. " +
+		"Entries will be validated"
+	));
+
+
    const processButton: HTMLButtonElement = document.getElementById("submit-button")! as HTMLButtonElement;
 	processButton.addEventListener("click", async () => {
 		if (!rosterContent && attendanceCsvFiles)
 			return Error("Nothing to process: Either the roster data or attendance data or both are missing");
 		const trimmedList = attendanceCsvFiles.filter(item => {
-			return item.name.search(/Attendance\D{8}\.csv/i) >= 0;
+			return item.name.search(/Attendance\d{8}\.csv/i) >= 0 ? item : undefined;
 		});
 		const attendanceFilesContents = await getContentsFromFiles(trimmedList);
 		const {sessionsData, rosterRecords } = coreProcessing(rosterContent, attendanceFilesContents);
-		reportToHTMLPage(sessionsData, rosterRecords );
 		prepareCSVFiles(sessionsData, downloadFilesButtonsDiv);
+		reportToHTMLPage(sessionsData, rosterRecords );
 	});
 	rollTableDiv = document.getElementById("onpage-roll") as HTMLDivElement;
 	downloadFilesButtonsDiv = document.getElementById("download-files-buttons") as HTMLDivElement;
 	//processButton.click();
 });
 
+function createTimePeriodControls(container: HTMLElement): void {
+	
+}
+
 function getCsvFilesOnly(fileList: File[]): File[] {
 	const trimList: File[] = [];
-	const selectList = document.getElementById("select-list") as HTMLDivElement;
 	for (const file of fileList)
 		if (file.name.search(/^Attendance\d{8}\.csv$/i) >= 0) {
 			trimList.push(file);
-			selectList.appendChild(document.createTextNode(file.name));
-			selectList.appendChild(document.createElement("br"));
+			SelectList.appendChild(document.createTextNode(file.name));
+			SelectList.appendChild(document.createElement("br"));
 		}
 	return trimList;
 }
 
-function getEmail(studentId: string, rosterRecords: RosterRecord[]) {
+function getEmail(studentId: string, rosterRecords: RosterRecord[]): string | undefined {
 	return rosterRecords.find(rec => rec.StudentId == studentId)?.Email;
 }
 
@@ -173,7 +248,7 @@ function getContentsFromFiles(inputFiles: File[]): Promise<string[]> {
  * @param sessionsData 
  * @param rosterRecords 
  */
-function reportToHTMLPage(sessionsData: SessionData[], rosterRecords: RosterRecord[]) {
+function reportToHTMLPage(sessionsData: SessionData[], rosterRecords: RosterRecord[]): void {
 	let params: TMakeTableParams;
 
 	while (rollTableDiv.firstChild)
@@ -341,7 +416,10 @@ function reportToHTMLPage(sessionsData: SessionData[], rosterRecords: RosterReco
  * @param containerElement 
  * @returns 
  */
-function prepareCSVFiles(sessionsData: SessionData[], containerElement: HTMLElement): {absent: string; present: string; combined: string} {
+function prepareCSVFiles(
+	sessionsData: SessionData[], 
+	containerElement: HTMLElement
+): {absent: string; present: string; combined: string} {
 	for (const session of sessionsData) {
 	// generate the CSV records
 		let fileRecords: string[][] = [];

@@ -27,10 +27,33 @@ span#attendance-file-format-string {
 span#select-list {
    font: normal 10pt 'Courier New',Courier,monotype;
 }
+div.container {
+   padding: 1em;
+}
 div#dropzone {
    padding:10px;
    border: 2pt dashed black;
    background-color: rgb(238, 231, 231);
    width: fit-content;
    margin:5px 0 5px 0;
+}
+div#docgrid {
+   display: grid;
+   grid-template-columns: auto auto;
+   column-gap:1em;
+}
+input.textboxForHours {
+    display: inline;
+}
+label#weekdaysLabelElem {
+   display: grid;
+   grid-template-columns: auto auto;
+}
+span#beforeText {
+   grid-column: span 2;
+   margin-bottom: 1em;
+}
+span.daySpanElem {
+   display:grid;
+   grid-template-columns: auto auto;
 }

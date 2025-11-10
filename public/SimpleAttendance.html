@@ -19,30 +19,36 @@
 </p>
 <div class="container">
 <form target="_blank">
-    <label>
-      Select the appropriately formatted CSV file that contains your roster
-      <a href="SimpleAttendanceHelp.html" target="_blank">
-      <img src="../images/help-icon-15x15.jpg" alt="help for this"
-         style="width:12px;vertical-align: middle;"></a>
-    <input id="roster-file" type="file" accept=".csv">
-    </label>
+    <div id="docgrid">
+    <div id="left-side">
+        <label>
+        Select the appropriately formatted CSV file that contains your roster
+        <a href="SimpleAttendanceHelp.html" target="_blank">
+        <img src="../images/help-icon-15x15.jpg" alt="help for this"
+            style="width:12px;vertical-align: middle;"></a>
+        <input id="roster-file" type="file" accept=".csv">
+        </label>
 
-    <div id="dropzone">
-    <label style="margin:0;">Drop files or a folder here or use the <b>Choose Files</b> button<br><br>
-    Files should be of format <span id="attendance-file-format"></span>
-    <input id="attendance-files-folder" type="file" multiple accept=".csv">
-    <span id="select-list"></span>
-    </label>
+        <div id="dropzone">
+        <label id="attendance-files-prompt" style="margin:0;">Drop files or a folder here 
+        or use the <b>Choose Files</b> button<br><br>
+        Files should be of format <span id="attendance-file-format"></span>
+        <input id="attendance-files-folder-input" type="file" multiple accept=".csv">
+        </label>
+        <span id="select-list-report"></span>
+        <span id="select-list"></span>
+        </div>
+        <button type="button" id="submit-button">Process</button>
+        <button type="reset" id="form-reset">Reset</button>
+        <input type="checkbox" id="control-time">Control Time        
     </div>
+    <div id="right-side"></div>
+    </div> <!-- id=docgrid -->
 
-    <button type="button" id="submit-button">Process</button>
-    <button type="reset">Reset</button>
     <div id="warnings"></div>
 </form>
-
-<div id="onpage-roll"></div>
-
 <div id="download-files-buttons"></div>
+<div id="onpage-roll"></div>
 
 </div>
 </body>
